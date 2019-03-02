@@ -48,8 +48,8 @@ public class AppRowPresenter extends Presenter {
 
     @Override
     public void onUnbindViewHolder(ViewHolder viewHolder) {
-        ImageCardView imageCardView = (ImageCardView) viewHolder.view;
-        imageCardView.setBadgeImage(null);
-        imageCardView.setMainImage(null);
+//        ImageCardView imageCardView = (ImageCardView) viewHolder.view;
+//        imageCardView.setBadgeImage(null);
+//        imageCardView.setMainImage(null);
     }
 }

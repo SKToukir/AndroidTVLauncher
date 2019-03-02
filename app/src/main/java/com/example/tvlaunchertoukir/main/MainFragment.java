@@ -4,6 +4,8 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.RequiresApi;
@@ -15,26 +17,42 @@ import android.support.v17.leanback.widget.ImageCardView;
 import android.support.v17.leanback.widget.ListRow;
 import android.support.v17.leanback.widget.ListRowPresenter;
 import android.support.v17.leanback.widget.OnItemViewClickedListener;
+import android.support.v17.leanback.widget.OnItemViewSelectedListener;
 import android.support.v17.leanback.widget.Presenter;
 import android.support.v17.leanback.widget.Row;
 import android.support.v17.leanback.widget.RowPresenter;
 import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.DisplayMetrics;
+import android.util.Log;
+import android.view.Gravity;
+import android.view.ViewGroup;
+import android.widget.FrameLayout;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.animation.GlideAnimation;
+import com.bumptech.glide.request.target.SimpleTarget;
 import com.example.tvlaunchertoukir.R;
 import com.example.tvlaunchertoukir.app.AppDataManage;
 import com.example.tvlaunchertoukir.app.AppModel;
 import com.example.tvlaunchertoukir.details.DetailsActivity;
 import com.example.tvlaunchertoukir.model.FunctionModel;
 import com.example.tvlaunchertoukir.model.MediaModel;
+import com.example.tvlaunchertoukir.model.VideoModel;
 import com.example.tvlaunchertoukir.presenter.AppRowPresenter;
 import com.example.tvlaunchertoukir.presenter.FunctionPresenter;
 import com.example.tvlaunchertoukir.presenter.ImageCardPresenter;
+import com.example.tvlaunchertoukir.presenter.VideoPresenter;
+import com.example.tvlaunchertoukir.util.ClockView;
 
 import java.util.ArrayList;
 
 public class MainFragment extends BrowseFragment {
+
+    public static String BACK_IMAGE_URL = "";
 
     protected BrowseFragment mBrowseFragment;
     private ArrayObjectAdapter rowsAdapter;
@@ -84,11 +102,55 @@ public class MainFragment extends BrowseFragment {
                     Bundle bundle = ActivityOptionsCompat.makeSceneTransitionAnimation((Activity) getContext(),((ImageCardView)itemViewHolder.view).getMainImageView(),
                             DetailsActivity.SHARED_NAME).toBundle();
                     startActivity(intent, bundle);
+                }else if (item instanceof AppModel){
+                    AppModel appModel = (AppModel) item;
+                    Intent intent = getActivity().getPackageManager().getLaunchIntentForPackage(appModel.getPackageName());
+                    if (intent != null){
+                        getActivity().startActivity(intent);
+                    }
                 }
             }
         });
 
+        setOnItemViewSelectedListener(new OnItemViewSelectedListener() {
+            @Override
+            public void onItemSelected(Presenter.ViewHolder itemViewHolder, Object item, RowPresenter.ViewHolder rowViewHolder, Row row) {
+                if (item instanceof MediaModel){
+                    MediaModel mediaModel = (MediaModel) item;
+                    setImageBackground(mediaModel.getImageUrl());
+                    BACK_IMAGE_URL =  mediaModel.getImageUrl();
+                }else if (item instanceof VideoModel){
+                    VideoModel videoModel = (VideoModel) item;
+                    setImageBackground("http://e.hiphotos.baidu.com/zhidao/pic/item/5ab5c9ea15ce36d3418e754838f33a87e850b1c4.jpg");
+                    BACK_IMAGE_URL =  "http://e.hiphotos.baidu.com/zhidao/pic/item/5ab5c9ea15ce36d3418e754838f33a87e850b1c4.jpg";
+                }else {
+                    mBackgroundManager.setBitmap(null);
+                    BACK_IMAGE_URL = "null";
+                    setImageBackground(BACK_IMAGE_URL);
+                }
+            }
+        });
+    }
 
+    private void setImageBackground(String imageUrl) {
+
+        if (imageUrl != "null") {
+            int width = mMetrics.widthPixels;
+            int height = mMetrics.heightPixels;
+
+            Glide.with(getActivity())
+                    .load(imageUrl)
+                    .asBitmap()
+                    .centerCrop()
+                    .into(new SimpleTarget<Bitmap>(width, height) {
+                        @Override
+                        public void onResourceReady(Bitmap resource, GlideAnimation<? super Bitmap> glideAnimation) {
+                            mBackgroundManager.setBitmap(resource);
+                        }
+                    });
+        }else {
+            mBackgroundManager.setBitmap(null);
+        }
     }
 
     private void appFunctions() {
@@ -113,9 +175,14 @@ public class MainFragment extends BrowseFragment {
 
     private void addVideoAdapter() {
         String headerName = "Video";
-        ArrayObjectAdapter rowAdapter = new ArrayObjectAdapter(new ImageCardPresenter());
-        for (MediaModel mediaModel : MediaModel.getVideoModels()){
-            rowAdapter.add(mediaModel);
+        ArrayObjectAdapter rowAdapter = new ArrayObjectAdapter(new VideoPresenter());
+
+        for (int i = 0; i < 3; i++){
+            VideoModel videoModel = new VideoModel();
+            videoModel.setTitle("Video One");
+            videoModel.setVideoUrl("http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4");
+
+            rowAdapter.add(videoModel);
         }
         HeaderItem headerItem = new HeaderItem(0,headerName);
         rowsAdapter.add(new ListRow(headerItem,rowAdapter));
@@ -130,15 +197,21 @@ public class MainFragment extends BrowseFragment {
         }
         HeaderItem header = new HeaderItem(0, headerName);
         rowsAdapter.add(new ListRow(header, listRowAdapter));
-
     }
 
 
     private void setupUIElements() {
         // setBadgeDrawable(getActivity().getResources().getDrawable(
         // R.drawable.videos_by_google_banner));
-        setTitle("WT"); // Badge, when set, takes precedent
+
+
+//        setTitle(clockView); // Badge, when set, takes precedent
         // over title
+
+        addClockView();
+
+
+
         setHeadersState(HEADERS_DISABLED);
         setHeadersTransitionOnBackEnabled(true);
 
@@ -148,10 +221,50 @@ public class MainFragment extends BrowseFragment {
         setSearchAffordanceColor(ContextCompat.getColor(getActivity(), R.color.search_opaque));
     }
 
+    @SuppressLint("ResourceType")
+    private void addClockView() {
+        ClockView clockView = new ClockView(getActivity());
+        clockView.setTextSize(22);
+        clockView.setId(1);
+        clockView.setTextColor(Color.YELLOW);
+        setMenuVisibility(true);
+
+        RelativeLayout.LayoutParams txtParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT,RelativeLayout.LayoutParams.WRAP_CONTENT);
+        txtParams.addRule(RelativeLayout.RIGHT_OF,clockView.getId());
+        txtParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+        txtParams.bottomMargin = 30;
+
+        TextView txtTimeFormat = new TextView(getActivity());
+        txtTimeFormat.setText("PM");
+        txtTimeFormat.setTextColor(Color.WHITE);
+
+
+
+        RelativeLayout mainLayout = new RelativeLayout(getActivity());
+
+        RelativeLayout.LayoutParams mainLayoutParam = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT,100);
+        mainLayout.setGravity(Gravity.RIGHT);
+        mainLayout.addView(txtTimeFormat, txtParams);
+        mainLayout.setPadding(0,0,10,0);
+
+        mainLayout.setBackground(getResources().getDrawable(R.drawable.clock_back));
+//        mainLayout.setBackgroundColor(Color.TRANSPARENT);
+        mainLayout.addView(clockView);
+
+        getActivity().addContentView(mainLayout, mainLayoutParam);
+    }
+
     private void prepareBackgroundManager() {
         mBackgroundManager = BackgroundManager.getInstance(getActivity());
         mBackgroundManager.attach(getActivity().getWindow());
         mMetrics = new DisplayMetrics();
         getActivity().getWindowManager().getDefaultDisplay().getMetrics(mMetrics);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        Log.d("life_cycle","onResume");
+        setImageBackground(BACK_IMAGE_URL);
     }
 }
