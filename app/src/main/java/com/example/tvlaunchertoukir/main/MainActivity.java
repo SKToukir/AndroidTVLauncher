@@ -12,7 +12,5 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // kkkk = "https://www.windowscentral.com/how-properly-change-system-default-language-windows-10"
-
     }
 }

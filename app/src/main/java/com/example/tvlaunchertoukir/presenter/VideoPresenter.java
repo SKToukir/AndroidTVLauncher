@@ -43,10 +43,14 @@ public class VideoPresenter extends Presenter {
         liveCardView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View view, boolean b) {
-                if (b){
-                    liveCardView.startVideo();
-                }else {
-                    liveCardView.stopVideo();
+                try{
+                    if (b){
+                        liveCardView.startVideo();
+                    }else {
+                        liveCardView.stopVideo();
+                    }
+                }catch (Exception e){
+                    e.printStackTrace();
                 }
             }
         });
@@ -69,5 +73,13 @@ public class VideoPresenter extends Presenter {
 
     @Override
     public void onUnbindViewHolder(ViewHolder viewHolder) {
+
+    }
+
+    @Override
+    public void onViewDetachedFromWindow(ViewHolder viewHolder) {
+        super.onViewDetachedFromWindow(viewHolder);
+        LiveCardView liveCardView = (LiveCardView) viewHolder.view;
+        liveCardView.stopVideo();
     }
 }

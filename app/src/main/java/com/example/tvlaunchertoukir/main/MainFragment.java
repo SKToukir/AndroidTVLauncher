@@ -8,10 +8,12 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.RequiresApi;
 import android.support.v17.leanback.app.BackgroundManager;
 import android.support.v17.leanback.app.BrowseFragment;
 import android.support.v17.leanback.widget.ArrayObjectAdapter;
+import android.support.v17.leanback.widget.FocusHighlight;
 import android.support.v17.leanback.widget.HeaderItem;
 import android.support.v17.leanback.widget.ImageCardView;
 import android.support.v17.leanback.widget.ListRow;
@@ -49,28 +51,24 @@ import com.example.tvlaunchertoukir.presenter.VideoPresenter;
 import com.example.tvlaunchertoukir.util.ClockView;
 
 import java.util.ArrayList;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class MainFragment extends BrowseFragment {
 
+    private static final int BACKGROUND_UPDATE_DELAY = 300;
     public static String BACK_IMAGE_URL = "";
 
-    protected BrowseFragment mBrowseFragment;
+    private Handler mHandler = new Handler();
     private ArrayObjectAdapter rowsAdapter;
     private BackgroundManager mBackgroundManager;
     private DisplayMetrics mMetrics;
-    private ListRowPresenter listRowPresenter;
+    private Timer mBackgroundTimer;
 
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-    }
-
-    @Override
-    public void onActivityCreated(Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-
-
 
         setupUIElements();
 
@@ -79,9 +77,19 @@ public class MainFragment extends BrowseFragment {
         buildRowsItem();
     }
 
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+
+    }
+
     private void buildRowsItem() {
 
-        rowsAdapter = new ArrayObjectAdapter(new ListRowPresenter());
+        ListRowPresenter listRowPresenter = new ListRowPresenter();
+        listRowPresenter.setShadowEnabled(false);        // 不显示阴影部分
+        listRowPresenter.setKeepChildForeground(false);
+
+        rowsAdapter = new ArrayObjectAdapter(listRowPresenter);
 
         addPhotoRow();
         addVideoAdapter();
@@ -117,19 +125,31 @@ public class MainFragment extends BrowseFragment {
             public void onItemSelected(Presenter.ViewHolder itemViewHolder, Object item, RowPresenter.ViewHolder rowViewHolder, Row row) {
                 if (item instanceof MediaModel){
                     MediaModel mediaModel = (MediaModel) item;
-                    setImageBackground(mediaModel.getImageUrl());
+//                    setImageBackground(mediaModel.getImageUrl());
+                    startBackgroundTimer();
                     BACK_IMAGE_URL =  mediaModel.getImageUrl();
                 }else if (item instanceof VideoModel){
                     VideoModel videoModel = (VideoModel) item;
-                    setImageBackground("http://e.hiphotos.baidu.com/zhidao/pic/item/5ab5c9ea15ce36d3418e754838f33a87e850b1c4.jpg");
+//                    setImageBackground("http://e.hiphotos.baidu.com/zhidao/pic/item/5ab5c9ea15ce36d3418e754838f33a87e850b1c4.jpg");
                     BACK_IMAGE_URL =  "http://e.hiphotos.baidu.com/zhidao/pic/item/5ab5c9ea15ce36d3418e754838f33a87e850b1c4.jpg";
+                    startBackgroundTimer();
+
                 }else {
                     mBackgroundManager.setBitmap(null);
                     BACK_IMAGE_URL = "null";
-                    setImageBackground(BACK_IMAGE_URL);
+//                    setImageBackground(BACK_IMAGE_URL);
+                    startBackgroundTimer();
                 }
             }
         });
+    }
+
+    private void startBackgroundTimer() {
+        if(null != mBackgroundTimer){
+            mBackgroundTimer.cancel();
+        }
+        mBackgroundTimer = new Timer();
+        mBackgroundTimer.schedule(new UpdateBackgroundTask(), BACKGROUND_UPDATE_DELAY);
     }
 
     private void setImageBackground(String imageUrl) {
@@ -266,5 +286,27 @@ public class MainFragment extends BrowseFragment {
         super.onResume();
         Log.d("life_cycle","onResume");
         setImageBackground(BACK_IMAGE_URL);
+    }
+
+
+    private class UpdateBackgroundTask extends TimerTask {
+
+        @Override
+        public void run() {
+            mHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    setImageBackground(BACK_IMAGE_URL);
+                }
+            });
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (null != mBackgroundTimer){
+            mBackgroundTimer.cancel();
+        }
     }
 }

@@ -1,11 +1,72 @@
 <resources>
 
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.Leanback.Browse">
+    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+    </style>
+
+    <style name="Leanback" parent="@style/Theme.Leanback">
+        <!--<item name="browseRowsMarginTop">100dp</item>-->
+        <!--<item name="android:windowBackground">@drawable/common_bg_background</item>-->
+        <!--  <item name="rowHorizontalGridStyle">@style/rowHorizontalGridStyle</item>-->
+        <!--  <item name="rowHeaderDescriptionStyle">@style/rowHeaderDescriptionStyle</item>-->
+        <!--  <item name="browseTitleTextStyle">@style/LeanbackTitleText</item>-->
+        <!-- <item name="imageCardViewContentStyle">@style/LeanbackImageCardViewContentStyle</item>-->
+        <!-- <item name="imageCardViewTitleStyle">@style/LeanbackImageCardViewTitleStyle</item>-->
+        <item name="overlayDimMaskColor">@color/img_full_opaque</item>
+        <item name="overlayDimActiveLevel">@fraction/lb_view_active_level</item>
+        <!--控制每一个item 背景投影</item>-->
+        <item name="overlayDimDimmedLevel">50%</item>
+    </style>
+
+    <style name="rowHorizontalGridStyle" parent="Widget.Leanback.Row.HorizontalGridView">
+        <item name="android:horizontalSpacing">5dp</item>
+        <item name="focusOutFront">false</item>
+    </style>
+
+    <style name="LeanbackTitleText">
+        <item name="android:singleLine">true</item>
+        <item name="android:gravity">end</item>
+        <item name="android:ellipsize">end</item>
+        <item name="android:textAlignment">viewStart</item>
+        <item name="android:textAppearance">@style/TextAppearanceLeanbackTitle</item>
+    </style>
+
+    <style name="TextAppearanceLeanbackTitle" parent="TextAppearance.Leanback">
+        <item name="android:fontFamily">sans-serif-light</item>
+        <item name="android:textSize">36.0px</item>
+        <item name="android:textColor">@color/lb_browse_title_color</item>
+    </style>
+
+    <style name="LeanbackImageCardViewContentStyle" parent="Widget.Leanback.ImageCardView.ContentStyle">
+        <item name="android:textAppearance">@style/TextAppearanceLeanbackImageCardViewContent</item>
+    </style>
+
+    <style name="TextAppearanceLeanbackImageCardViewContent" parent="TextAppearance.Leanback.ImageCardView.Content">
+        <item name="android:textColor">@color/lb_basic_card_content_text_color</item>
+        <item name="android:textSize">30.0px</item>
+    </style>
+
+    <style name="LeanbackImageCardViewTitleStyle" parent="Widget.Leanback.ImageCardView.TitleStyle">
+        <item name="android:textAppearance">@style/TextAppearanceLeanbackImageCardViewTitle</item>
+    </style>
+
+    <style name="TextAppearanceLeanbackImageCardViewTitle" parent="TextAppearance.Leanback.ImageCardView.Title">
+        <item name="android:textColor">@color/lb_basic_card_title_text_color</item>
+        <item name="android:textSize">30.0px</item>
+    </style>
+
+
+    <style name="CustomImageCardViewStyle" parent="Widget.Leanback.ImageCardViewStyle">
+        <item name="cardBackground">#F0F</item>
+        <item name="android:dialogCornerRadius">100dp</item>
+        <item name="lbImageCardViewType">Title|Content</item>
+    </style>
+    <style name="CustomImageCardTheme" parent="Theme.Leanback">
+        <item name="imageCardViewStyle">@style/CustomImageCardViewStyle</item>
     </style>
 
 </resources>
